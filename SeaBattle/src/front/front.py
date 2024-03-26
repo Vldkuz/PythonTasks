@@ -1,8 +1,6 @@
-import sys
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QGridLayout, QHBoxLayout
 from screeninfo import get_monitors
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
-    QVBoxLayout, QGridLayout, QHBoxLayout
-from PyQt6.QtGui import QColor, QScreen
 
 NUMBER_OF_COLUMN = 10
 NUMBER_OF_ROWS = 10
@@ -16,7 +14,7 @@ INDENT_Y = int(monitor.height * INDENT_Y_COFF)
 
 WIDTH_COFF = 0.625
 HEIGHT_COFF = 0.55555555555555555555555555555556
-WIDTH_X = int(monitor.width * WEIDTH_COFF)
+WIDTH_X = int(monitor.width * WIDTH_COFF)
 HEIGHT_Y = int(monitor.height * HEIGHT_COFF)
 
 WIDTH_BUTTON_X = 50
@@ -50,7 +48,7 @@ class ColorChanger(QWidget):
     @staticmethod
     def create_button(grid_layout, i, j, change_color, buttons, number):
         button = QPushButton()
-        button.setMaximumSize(WEIDTH_BUTTON_X, WEIDTH_BUTTON_Y)
+        button.setMaximumSize(WIDTH_BUTTON_X, WIDTH_BUTTON_Y)
         button.setStyleSheet('background-color: white;')
         button.clicked.connect(lambda _, row=i, col=j, grid_num=number:
                                change_color(row, col, grid_num))
@@ -76,7 +74,7 @@ class ColorChanger(QWidget):
         super().__init__()
 
         self.setWindowTitle(NAME_WINDOW)
-        self.setGeometry(INDENT_X, INDENT_Y, WEIDTH_X, HEIGHT_Y)
+        self.setGeometry(INDENT_X, INDENT_Y, WIDTH_X, HEIGHT_Y)
 
         main_layout = QHBoxLayout()
         self.setLayout(main_layout)
