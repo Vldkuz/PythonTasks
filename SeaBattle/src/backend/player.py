@@ -1,4 +1,5 @@
 # Здесь должна быть реализация второго игрока
+from SeaBattle.src.exceptions.exceptions import ShipException
 from SeaBattle.src.interfaces.IPlayer import IPlayer
 from SeaBattle.src.backend.game import Game
 from SeaBattle.src.backend.game_enums import *
@@ -36,6 +37,19 @@ class Player(IPlayer):
         self._level = level
         self._enemy_field = {}
 
+        self._SHIP_BY_DIRECTION = {
+            Direction.UP: lambda ship_size: (
+                random.randint(START_X, self.columns), random.randint(START_Y, self.rows - ship_size)),
+            Direction.DOWN: lambda ship_size: (
+                random.randint(START_X, self.columns), random.randint(START_Y + ship_size, self.rows)),
+            Direction.LEFT: lambda ship_size: (
+                random.randint(START_X + ship_size, self.columns), random.randint(START_Y, self.rows)),
+            Direction.RIGHT: lambda ship_size: (
+                random.randint(START_X, self.columns - ship_size), random.randint(START_Y, self.rows))
+        }
+
+        self._generate_ship_field()
+
     def set_feedback(self, coordinates: tuple[int, int], status: CellState) -> None:
         self._enemy_field[coordinates] = status
 
@@ -53,3 +67,20 @@ class Player(IPlayer):
 
     def get_feedback(self, coordinates: tuple[int, int]) -> CellState:
         return self._IPlayable.pick_ship(coordinates)
+
+    def _generate_ship_field(self):
+        ships = {ShipSizes.BATTLE_SHIP, ShipSizes.CRUISER, ShipSizes.CRUISER,
+                 ShipSizes.DESTROYER, ShipSizes.DESTROYER, ShipSizes.DESTROYER, ShipSizes.DESTROYER,
+                 ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes}
+        for ship in ships:
+            self._generate_ship(ship)
+
+    def _generate_ship(self, size_ship: ShipSizes):
+        while True:
+            direction = random.choice(list(Direction))
+            coordinates_ship = self._SHIP_BY_DIRECTION.get(direction)(size_ship)
+            try:
+                self._IPlayable.set_ship(coordinates_ship, direction, size_ship)
+                break
+            except ShipException as e:
+                continue
