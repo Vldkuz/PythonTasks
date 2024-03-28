@@ -78,7 +78,7 @@ class Player(IPlayer):
     def _generate_ship(self, size_ship: ShipSizes):
         while True:
             direction = random.choice(list(Direction))
-            coordinates_ship = self._SHIP_BY_DIRECTION.get(direction)(size_ship)
+            coordinates_ship = self._SHIP_BY_DIRECTION.get(direction)(size_ship.value)
             try:
                 self._IPlayable.set_ship(coordinates_ship, direction, size_ship)
                 break
