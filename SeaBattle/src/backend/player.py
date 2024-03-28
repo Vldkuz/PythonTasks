@@ -71,7 +71,8 @@ class Player(IPlayer):
     def _generate_ship_field(self):
         ships = {ShipSizes.BATTLE_SHIP, ShipSizes.CRUISER, ShipSizes.CRUISER,
                  ShipSizes.DESTROYER, ShipSizes.DESTROYER, ShipSizes.DESTROYER, ShipSizes.DESTROYER,
-                 ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes}
+                 ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT, ShipSizes.BOAT}
+
         for ship in ships:
             self._generate_ship(ship)
 
