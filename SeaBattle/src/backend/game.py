@@ -60,10 +60,25 @@ class Game(IPlayable):
                 or coordinates[X] < 0 or coordinates[Y] < 0):
             raise ShipException(f'Выход за границу сетки {coordinates}')
 
-        left_x = (coordinates[X] - 1) % self._max_columns
-        right_x = (coordinates[X] + 1) % self._max_columns
-        up_y = (coordinates[Y] + 1) % self._max_rows
-        down_y = (coordinates[Y] - 1) % self._max_rows
+        if (coordinates[X] - 1) < 0:
+            left_x = coordinates[X]
+        else:
+            left_x = coordinates[X] - 1
+
+        if (coordinates[X] + 1) > self._max_columns:
+            right_x = coordinates[X]
+        else:
+            right_x = coordinates[X] + 1
+
+        if (coordinates[Y] + 1) > self._max_rows:
+            up_y = coordinates[Y]
+        else:
+            up_y = coordinates[Y] + 1
+
+        if (coordinates[Y] - 1) < 0:
+            down_y = coordinates[Y]
+        else:
+            down_y = coordinates[Y] - 1
 
         if (self._field.get((left_x, coordinates[Y])) == CellState.SHIP_FOUND
                 or self._field.get((right_x, coordinates[Y])) == CellState.SHIP_FOUND
