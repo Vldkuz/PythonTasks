@@ -9,10 +9,10 @@ X = 0
 Y = 1
 
 COORDINATES_GENERATOR = {
-    Direction.UP: lambda x, y, ship_size: (range(x, x + STANDARD_STANDOFF_FOR_GEN_RANGE), range(y, y + ship_size)),
-    Direction.RIGHT: lambda x, y, ship_size: (range(x, x + ship_size), range(y, y + STANDARD_STANDOFF_FOR_GEN_RANGE)),
-    Direction.DOWN: lambda x, y, ship_size: (range(x, x + STANDARD_STANDOFF_FOR_GEN_RANGE), range(y - ship_size, y)),
-    Direction.LEFT: lambda x, y, ship_size: (range(x - ship_size, x), range(y, y + STANDARD_STANDOFF_FOR_GEN_RANGE))
+    Direction.UP: lambda x, y, ship_size: (range(x, x + ship_size), range(y, y + STANDARD_STANDOFF_FOR_GEN_RANGE)),
+    Direction.RIGHT: lambda x, y, ship_size: (range(x, x + STANDARD_STANDOFF_FOR_GEN_RANGE), range(y, y + ship_size)),
+    Direction.DOWN: lambda x, y, ship_size: (range(x, x - ship_size), range(y, y + STANDARD_STANDOFF_FOR_GEN_RANGE)),
+    Direction.LEFT: lambda x, y, ship_size: (range(x, x + STANDARD_STANDOFF_FOR_GEN_RANGE), range(y - ship_size, y))
 }
 
 

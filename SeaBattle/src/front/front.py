@@ -1,16 +1,16 @@
 import pprint
 
-from PyQt6.QtGui import QColor, QMouseEvent
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, \
     QGridLayout, QHBoxLayout
-from PyQt6.QtCore import Qt
 from screeninfo import get_monitors
-from SeaBattle.src.backend.player import Player
+
 from SeaBattle.src.backend.game import Game
+from SeaBattle.src.backend.game_enums import *
+from SeaBattle.src.backend.player import Player
 
-
-NUMBER_OF_COLUMN = 5
-NUMBER_OF_ROWS = 5
+NUMBER_OF_COLUMN = 10
+NUMBER_OF_ROWS = 10
 GLOBAL_STEP = 1
 
 INDENT_X_COFF = 0.05208333333333333333333333333333
@@ -70,8 +70,8 @@ class ColorChanger(QWidget):
             for j in range(NUMBER_OF_COLUMN):
                 self.create_button(grid_layout1, i, j, self.change_color,
                                    self.buttons1, FIELD_1)
-                self.create_button(grid_layout2, i, j, self.change_color,
-                                   self.buttons2, FIELD_2)
+                # self.create_button(grid_layout2, i, j, self.change_color,
+                #                    self.buttons2, FIELD_2)
 
     # создание одной кнопки
     @staticmethod
@@ -88,11 +88,14 @@ class ColorChanger(QWidget):
     def change_color(self, row, col, grid_num):
         if grid_num == FIELD_1:
             button = self.buttons1[row * NUMBER_OF_COLUMN + col][0]
+            if self.critical_points(row, col):
+                self.buttons1[row * NUMBER_OF_COLUMN + col][3] \
+                    = self.current_color.name()
+                button.setStyleSheet(
+                    f'background-color: {self.current_color.name()};')
         else:
             button = self.buttons2[row * NUMBER_OF_COLUMN + col][0]
-
-        if self.critical_points(row, col):
-            self.buttons1[row * NUMBER_OF_COLUMN + col][3] \
+            self.buttons2[row * NUMBER_OF_COLUMN + col][3] \
                 = self.current_color.name()
             button.setStyleSheet(
                 f'background-color: {self.current_color.name()};')
@@ -140,7 +143,6 @@ class ColorChanger(QWidget):
                         self.buttons1[three][3] == '#808080' or
                         self.buttons1[four][3] == '#808080'):
                     return False
-
         return True
 
     # =========================================================================
@@ -186,9 +188,80 @@ class ColorChanger(QWidget):
                     all_ships.append(one_ship)
                     one_ship = []
                     break
-        all_ships = [[*x[0], 'down' if len(x) >= 2 and x[0][0] + 1 == x[1][0]  else 'right', len(x)] for x in all_ships]
-        pprint.pprint(all_ships)
-        print()
+
+        enums = {
+            1: ShipSizes.BOAT,
+            2: ShipSizes.DESTROYER,
+            3: ShipSizes.CRUISER,
+            4: ShipSizes.BATTLE_SHIP
+        }
+
+        all_ships = [[tuple(x[0]),
+                      Direction.DOWN if len(x) >= 2 and x[0][0] + 1 == x[1][0]
+                      else
+                      Direction.RIGHT, enums[len(x)]] for x in all_ships]
+
+        for ship in all_ships:
+            self._game.set_ship(*ship)
+        # pprint.pprint(self.buttons2)
+        for i in range(NUMBER_OF_ROWS):
+            for j in range(NUMBER_OF_COLUMN):
+                self.create_battle_button(self.grid_layout2, i, j,
+                                          self.change_battle_color,
+                                          self.buttons2, FIELD_2)
+
+    @staticmethod
+    def create_battle_button(grid_layout, i, j, change_battle_color, buttons,
+                             field_number):
+        button = QPushButton()
+        button.setMaximumSize(WIDTH_BUTTON_X, WIDTH_BUTTON_Y)
+        button.setStyleSheet('background-color: blue;')
+        button.clicked.connect(lambda _, row=i, col=j, grid_num=field_number:
+                               change_battle_color(row, col, grid_num))
+        grid_layout.addWidget(button, i + GLOBAL_STEP, j + GLOBAL_STEP)
+        buttons.append([button, i, j, '#0000ff'])
+
+    def change_battle_color(self, row, col, grid_num):
+        if self.buttons2[row * NUMBER_OF_COLUMN + col][3] != '#0000ff':
+            return True
+        if self._player.get_feedback((row, col)) == CellState.SHIP_FOUND:
+            self.buttons2[row * NUMBER_OF_COLUMN + col][3] \
+                = '#ff0000'
+            self.buttons2[row * NUMBER_OF_COLUMN + col][0].setStyleSheet(
+                f'background-color: #ff0000;')
+            return True
+        if self._player.get_feedback((row, col)) == CellState.SHIP_NOTFOUND:
+            self.buttons2[row * NUMBER_OF_COLUMN + col][3] \
+                = '#ffffff'
+            self.buttons2[row * NUMBER_OF_COLUMN + col][0].setStyleSheet(
+                f'background-color: #ffffff;')
+
+            turn = True
+            while turn:
+                coords: tuple = self._player.get_next_move()
+                print(coords)
+                button = self.buttons1[(coords[0] - 1) * NUMBER_OF_COLUMN + (coords[1] - 1)]
+                if self.change_battle_color_bot(coords[0] - 1, coords[1] - 1, button):
+                    turn = True
+                    self._player.set_feedback((coords[0] - 1, coords[1] - 1),
+                                              CellState.SHIP_FOUND)
+                else:
+                    turn = False
+            return False
+
+    def change_battle_color_bot(self, row, col, button):
+        if self.buttons1[row * NUMBER_OF_COLUMN + col][3] == '#808080':
+            self.buttons1[row * NUMBER_OF_COLUMN + col][3] \
+                = '#ff0000'
+            button[0].setStyleSheet(
+                f'background-color: #ff0000;')
+            return True
+        if self.buttons1[row * NUMBER_OF_COLUMN + col][3] == '#0000ff':
+            self.buttons1[row * NUMBER_OF_COLUMN + col][3] \
+                = '#ffffff'
+            button[0].setStyleSheet(
+                f'background-color: #ffffff;')
+            return False
 
     def __init__(self):
         super().__init__()
@@ -204,8 +277,8 @@ class ColorChanger(QWidget):
         main_layout.addLayout(grid_layout1)
 
         # добавление поля атаки
-        grid_layout2 = QGridLayout()
-        main_layout.addLayout(grid_layout2)
+        self.grid_layout2 = QGridLayout()
+        main_layout.addLayout(self.grid_layout2)
 
         # добавление кнопок
         colors_layout = QVBoxLayout()
@@ -214,17 +287,17 @@ class ColorChanger(QWidget):
         # создание осей координат
         self.create_rows(grid_layout1)
         self.create_cols(grid_layout1)
-        self.create_rows(grid_layout2)
-        self.create_cols(grid_layout2)
+        self.create_rows(self.grid_layout2)
+        self.create_cols(self.grid_layout2)
 
         self.buttons1: list = []
         self.buttons2: list = []
-        self.colors = [QColor(BLUE_COLOR), QColor(GRAY_COLOR),
+        self.colors = [QColor(GRAY_COLOR), QColor(BLUE_COLOR),
                        QColor(WHITE_COLOR), QColor(RED_COLOR)]
         self.current_color = self.colors[FLAG]
 
         # вывод на экран кнопок и полей
-        self.create_grid(grid_layout1, grid_layout2)
+        self.create_grid(grid_layout1, self.grid_layout2)
         self.create_color_buttons(colors_layout)
 
         self._game = Game(NUMBER_OF_ROWS, NUMBER_OF_COLUMN)
