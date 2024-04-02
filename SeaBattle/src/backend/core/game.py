@@ -14,6 +14,7 @@ class Game(IPlayable):
         self.rows: int = rows
         self.columns: int = columns
         self.ship_definer = ship_definer
+        self.ship_counter = {}
 
     def get_rows(self) -> int:
         return self.rows
@@ -24,6 +25,7 @@ class Game(IPlayable):
     def set_ship(self, start_point: Point, end_point: Point) -> None or ShipException:
         Game.validate_cater_cornered(start_point, end_point)
         Game.validate_size_ship(start_point, end_point)
+        self.check_count_ship(start_point, end_point)
 
         if not is_in_range(start_point.get_x(), 0, self.columns - 1, start_point.get_y(), 0, self.rows - 1):
             raise ShipException(f"Не принимаем cтартовые точки с отрицательными координатами {start_point}")
@@ -62,6 +64,28 @@ class Game(IPlayable):
 
         if size < 1 or size > 4:
             raise ShipException(f"Недопустимый размер корабля {size}")
+
+    def check_count_ship(self, first: Point, second: Point) -> None or ShipException:
+        size = get_distance(first, second) + 1
+        size_count_ship = self.ship_counter.get(size)
+
+        if size == 1:
+            if size_count_ship == self.ship_definer.count_one:
+                raise ShipException(f"Нельзя добавить корабль первого типа, их уже {size_count_ship}")
+        if size == 2:
+            if size_count_ship == self.ship_definer.count_two:
+                raise ShipException(f"Нельзя добавить корабль второго типа, их уже {size_count_ship}")
+        if size == 3:
+            if size_count_ship == self.ship_definer.count_three:
+                raise ShipException(f"Нельзя добавить корабль третьего типа, их уже {size_count_ship}")
+        if size == 4:
+            if size_count_ship == self.ship_definer.count_four:
+                raise ShipException(f"Нельзя добавить корабль четвертого типа, их уже {size_count_ship}")
+
+        if self.ship_counter.get(size) is None:
+            self.ship_counter[size] = 1
+        else:
+            self.ship_counter[size] += 1
 
 
 def generate_field(rows: int, columns: int, ship_def: ShipDefiner) -> Game:
