@@ -10,7 +10,7 @@ def is_in_range(x: int, x_less: int, x_more: int, y: int, y_less: int, y_more: i
     return (x_more >= x >= x_less) and (y_more >= y >= y_less)
 
 
-def get_distance(first: Point, second: Point) -> int:
+def get_distance_manhattan(first: Point, second: Point) -> int:
     return abs(first.get_x() - second.get_x()) + abs(first.get_y() - second.get_y())
     # Вычисляется по Манхетеновской метрике, поскольку она совпадает с Евклидовой при расположении по вертикали или горизонтали
 
@@ -31,13 +31,11 @@ def get_inner_points(first: Point, second: Point) -> Iterable[Point]:
             start_x += 1
 
 
-def get_point_ships(enemy_field: list, made_steps: set) -> Point:
-    ship_site: Point = random.choice(enemy_field)
-
-    while ship_site in made_steps:
-        ship_site: Point = random.choice(enemy_field)
-
-    return ship_site
+def get_instep_point_ships(enemy_field: list, made_steps: set) -> Point:
+    for step in enemy_field:
+        if step in made_steps:
+            continue
+        return step
 
 
 def get_move_by_complexity(level: Level, ship_site: Point, made_steps: set) -> Point:
@@ -52,4 +50,4 @@ def get_move_by_complexity(level: Level, ship_site: Point, made_steps: set) -> P
 
 def get_second_point(first: Point, size_ship: int):
     direction = random.choice(list(Direction))
-    return GENERATOR_NEXT_POINT[direction](first, size_ship)
+    return GENERATOR_NEXT_POINT[direction](first, size_ship - 1)

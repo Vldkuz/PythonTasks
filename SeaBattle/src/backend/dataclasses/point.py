@@ -19,6 +19,8 @@ class Point:
             yield Point(x, self._y - 1)
             x += 1
 
+        x -= 1
+
         while x >= self._x - 1:
             yield Point(x, self._y + 1)
             x -= 1
@@ -37,4 +39,3 @@ class Point:
 
     def __eq__(self, other) -> bool:
         return self._x == other.get_x() and self._y == other.get_y()
-

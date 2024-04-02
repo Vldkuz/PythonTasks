@@ -1,6 +1,6 @@
 from ..dataclasses.cell_states import CellState
 from ..dataclasses.point import Point
-from ..core.algorithms import get_distance, get_inner_points, is_in_range, get_second_point
+from ..core.algorithms import get_distance_manhattan, get_inner_points, is_in_range, get_second_point
 from ..dataclasses.ship_definer import ShipDefiner
 from ..exceptions.exceptions import ShipException
 from ..interfaces.IPlayable import IPlayable
@@ -36,11 +36,18 @@ class Game(IPlayable):
         for p in get_inner_points(start_point, end_point):
             self.check_ship_near(p)
 
+        size = get_distance_manhattan(start_point, end_point) + 1
+
+        if self.ship_counter.get(size) is None:
+            self.ship_counter[size] = 1
+        else:
+            self.ship_counter[size] += 1
+
         for p in get_inner_points(start_point, end_point):
             self.field[p] = CellState.SHIP_FOUND
 
     def pick_ship(self, point: Point) -> CellState:
-        return CellState.SHIP_FOUND if self.field.get(point) else CellState.SHIP_FOUND
+        return CellState.SHIP_FOUND if self.field.get(point) else CellState.SHIP_NOTFOUND
 
     def check_ship_near(self, point: Point) -> None or ShipException:
         for p in point.get_points_around():
@@ -60,13 +67,13 @@ class Game(IPlayable):
 
     @staticmethod
     def validate_size_ship(first: Point, second: Point) -> None or ShipException:
-        size = get_distance(first, second) + 1
+        size = get_distance_manhattan(first, second) + 1
 
         if size < 1 or size > 4:
             raise ShipException(f"Недопустимый размер корабля {size}")
 
     def check_count_ship(self, first: Point, second: Point) -> None or ShipException:
-        size = get_distance(first, second) + 1
+        size = get_distance_manhattan(first, second) + 1
         size_count_ship = self.ship_counter.get(size)
 
         if size == 1:
@@ -82,11 +89,6 @@ class Game(IPlayable):
             if size_count_ship == self.ship_definer.count_four:
                 raise ShipException(f"Нельзя добавить корабль четвертого типа, их уже {size_count_ship}")
 
-        if self.ship_counter.get(size) is None:
-            self.ship_counter[size] = 1
-        else:
-            self.ship_counter[size] += 1
-
 
 def generate_field(rows: int, columns: int, ship_def: ShipDefiner) -> Game:
     game = Game(rows, columns, ship_def)
@@ -99,9 +101,15 @@ def fill_field(game: Game, seed: float, ship_def: ShipDefiner) -> None:
     random_gen = Random(seed)
 
     for size_ship in ship_def:
-        first = Point(random_gen.randint(0, game.columns - 1), random_gen.randint(0, game.rows - 1))
-        second = get_second_point(first, size_ship)
-        try_set_ship(first, second, game)
+        while True:
+            first = Point(random_gen.randint(0, game.columns - 1), random_gen.randint(0, game.rows - 1))
+            second = get_second_point(first, size_ship)
+
+            try:
+                game.set_ship(first, second)
+                break
+            except ShipException:
+                continue
 
 
 def try_set_ship(first: Point, second: Point, game: Game):

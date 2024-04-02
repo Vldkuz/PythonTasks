@@ -1,4 +1,4 @@
-from algorithms import get_point_ships, get_move_by_complexity
+from .algorithms import get_instep_point_ships, get_move_by_complexity
 from ..core.game import Game, generate_field
 from ..dataclasses.level import Level
 from ..dataclasses.point import Point
@@ -18,5 +18,5 @@ class ComputerPlayer(IPlayer):
         # LEVEL.UNREAL = Вероятность подбить кораблик 100%
 
     def get_next_move(self) -> Point:
-        ship_site = get_point_ships(self._enemy_field.field.keys(), self._made_steps)
+        ship_site = get_instep_point_ships(list(self._enemy_field.field.keys()), self._made_steps)
         return get_move_by_complexity(self._level, ship_site, self._made_steps)
